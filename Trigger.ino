@@ -41,15 +41,15 @@ void setup()
  */
 void enabled() {
   // get desired translation and rotation, scaled to [-127..128] (0 neutral)
-  int x = usb1.leftX() - 127;
-  int y = (255 - usb1.leftY()) - 127;
-  int rotate = (255 - usb1.rightX()) - 127;
+  int x = (usb1.leftX() - 127)*.9;
+  int y = ((255 - usb1.leftY()) - 127)*.9;
+  int rotate = ((255 - usb1.rightX()) - 127)*.9;
 
   // calculate wheel throttles
-  int lf = x + y + rotate;
-  int rf = x - y + rotate;
-  int lr = -x + y + rotate;
-  int rr = -x - y + rotate;
+  int lf = x + y - rotate;
+  int rf = x - y - rotate;
+  int lr = -x + y - rotate;
+  int rr = -x - y - rotate;
 
   // normalize wheel throttles
   int maximum = max(max(abs(lf), abs(rf)), max(abs(lr), abs(rr)));
@@ -61,10 +61,10 @@ void enabled() {
   }
 
   // Set PWMs, shifted back to [0..255]
-  pwm0.write((lf*.9) + 127);
-  pwm1.write((rf*.9) + 127);
-  pwm2.write((lr*.9) + 127);
-  pwm3.write((rr*.9) + 127);
+  pwm0.write(lf + 127);
+  pwm1.write(rf + 127);
+  pwm2.write(lr + 127);
+  pwm3.write(rr + 127);
   
   if(!digitalRead(SIDECAR_DIGITAL1)){
     digitalWrite(4,HIGH);
@@ -83,7 +83,7 @@ void enabled() {
       sol1.on();
       sol0.off();
       wound = false;
-      kickerReset.queue(200);
+      kickerReset.queue(250);
     } else if(ready) winding = true;
   }
   
