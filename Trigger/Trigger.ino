@@ -1,7 +1,7 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #include <EEPROM.h>
-#include <RobotOpen.h>
+#include <RobotOpenSH.h>
 
 boolean winding = false;
 boolean wound = false;
@@ -23,14 +23,14 @@ void setup()
 {
   /* Initiate comms */
   RobotOpen.begin(&enabled, &disabled, &timedtasks);
-  
+
   pinMode(SIDECAR_DIGITAL4, OUTPUT);
-  digitalWrite(4,LOW);
+  digitalWrite(4, LOW);
   pinMode(SIDECAR_DIGITAL5, OUTPUT);
-  digitalWrite(5,LOW);
+  digitalWrite(5, LOW);
   pinMode(SIDECAR_DIGITAL3, OUTPUT);
-  digitalWrite(3,LOW);
-  
+  digitalWrite(3, LOW);
+
   pinMode(SIDECAR_DIGITAL1, INPUT);
   pinMode(SIDECAR_DIGITAL2, INPUT);
 }
@@ -41,61 +41,65 @@ void setup()
  */
 void enabled() {
   // get desired translation and rotation, scaled to [-127..128] (0 neutral)
-  int x = (usb1.leftX() - 127)*.9;
+  /*int x = (usb1.leftX() - 127)*.9;
   int y = ((255 - usb1.leftY()) - 127)*.9;
   int rotate = ((255 - usb1.rightX()) - 127)*.9;
+  */
 
   // calculate wheel throttles
-  int lf = x + y - rotate;
-  int rf = x - y - rotate;
-  int lr = -x + y - rotate;
-  int rr = -x - y - rotate;
+  //int lf = x + y - rotate;
+  //int rf = x - y - rotate;
+  //int lr = -x + y - rotate;
+  //int rr = -x - y - rotate;
 
   // normalize wheel throttles
-  int maximum = max(max(abs(lf), abs(rf)), max(abs(lr), abs(rr)));
+  /*int maximum = max(max(abs(lf), abs(rf)), max(abs(lr), abs(rr)));
   if (maximum > 127) {
     lf = (lf / maximum) * 127;
     rf = (rf / maximum) * 127;
     lr = (lr / maximum) * 127;
     rr = (rr / maximum) * 127;
-  }
+  }*/
 
   // Set PWMs, shifted back to [0..255]
-  pwm0.write(lf + 127);
-  pwm1.write(rf + 127);
-  pwm2.write(lr + 127);
-  pwm3.write(rr + 127);
-  
-  if(!digitalRead(SIDECAR_DIGITAL1)){
-    digitalWrite(4,HIGH);
+  pwm0.write(255 - usb1.leftY());
+  pwm1.write(usb1.rightY());
+  pwm2.write(255 - usb1.leftY());
+  pwm3.write(usb1.rightY());
+
+  if (!digitalRead(SIDECAR_DIGITAL1)) {
+    digitalWrite(4, HIGH);
   } else {
-    digitalWrite(4,LOW);
+    digitalWrite(4, LOW);
   }
-  
-  if(usb1.btnX()){
-    digitalWrite(5,HIGH);
-  }else{
-    digitalWrite(5,LOW);
+
+  if (usb1.btnX()) {
+    digitalWrite(5, HIGH);
+  } else {
+    digitalWrite(5, LOW);
   }
-  
-  if(usb1.btnA()){
-    if(wound){
+
+  if (usb1.btnA()) {
+    if (wound) {
       sol1.on();
       sol0.off();
       wound = false;
       kickerReset.queue(250);
-    } else if(ready) winding = true;
+    } else if (ready) winding = true;
   }
-  
-  if(digitalRead(SIDECAR_DIGITAL2)) { winding=false; wound=true; }
-  
-  if(winding){
+
+  if (digitalRead(SIDECAR_DIGITAL2)) {
+    winding = false;
+    wound = true;
+  }
+
+  if (winding) {
     sol0.on();
     sol1.off();
     digitalWrite(3, HIGH);
   } else digitalWrite(3, LOW);
-  
-  if(kickerReset.ready()) ready = true;
+
+  if (kickerReset.ready()) ready = true;
 }
 
 
@@ -103,9 +107,9 @@ void enabled() {
  * PWMs and Solenoids are automatically disabled
  */
 void disabled() {
-  digitalWrite(4,LOW);
-  digitalWrite(5,LOW);
-  digitalWrite(3,LOW);
+  digitalWrite(4, LOW);
+  digitalWrite(5, LOW);
+  digitalWrite(3, LOW);
 }
 
 
